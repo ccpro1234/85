@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Smart Baccarat Killer</title>
+
+<style>
+:root{
+  --bg-main:radial-gradient(circle at top,#1d2233,#0a0d14);
+  --glass:linear-gradient(180deg,rgba(25,32,55,.9),rgba(10,14,28,.9));
+  --border:rgba(120,140,255,.18);
+  --gold:#ffd86b;
+  --blue:#4da3ff;
+  --red:#ff6b6b;
+  --green:#4dffb0;
+}
+
+body{
+  font-family:"Segoe UI","Inter",Tahoma,sans-serif;
+  background:var(--bg-main);
+  color:#eef1ff;
+  margin:0;
+  letter-spacing:.2px
+}
+
+/* ===== LOGIN ===== */
+#loginBox{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg-main);
+  z-index:9999
+}
+.loginPanel{
+  background:var(--glass);
+  padding:30px 34px;
+  border-radius:18px;
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 20px 50px rgba(0,0,0,.7);
+  width:320px;
+  text-align:center;
+  backdrop-filter:blur(6px)
+}
+.loginPanel h3{
+  margin:0 0 18px;
+  font-weight:600;
+  letter-spacing:.5px
+}
+.loginPanel input{
+  width:100%;
+  padding:12px 14px;
+  margin:7px 0;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0b1020;
+  color:#fff;
+  font-size:15px;
+  outline:none
+}
+.loginPanel input:focus{
+  border-color:#6a7dff;
+  box-shadow:0 0 0 2px rgba(106,125,255,.25)
+}
+.loginPanel button{
+  width:100%;
+  margin-top:14px;
+  padding:13px;
+  font-size:15px;
+  font-weight:600;
+  background:linear-gradient(135deg,#3b7cff,#6aa7ff);
+  border:none;
+  border-radius:12px;
+  color:#fff;
+  cursor:pointer
+}
+.loginErr{color:#ff7a7a;font-size:13px;margin-top:10px}
+
+/* ===== PROGRAM ===== */
+#app{display:none}
+
+header{
+  background:linear-gradient(90deg,#0f1426,#1a2140);
+  padding:18px;
+  text-align:center;
+  box-shadow:
+    0 4px 14px rgba(0,0,0,.7),
+    inset 0 -1px 0 var(--border)
+}
+header h2{
+  margin:0;
+  font-weight:600;
+  letter-spacing:.6px
+}
+header div{
+  font-size:13px;
+  color:#b7c4ff
+}
+.expire{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--gold)
+}
+
+button{
+  padding:15px 28px;
+  margin:6px;
+  font-size:15px;
+  font-weight:600;
+  border:none;
+  border-radius:14px;
+  cursor:pointer
+}
+.player{background:linear-gradient(135deg,#2b7cff,#5fa8ff)}
+.banker{background:linear-gradient(135deg,#ff5f5f,#ff8a8a)}
+.tie{background:linear-gradient(135deg,#39e7a0,#6bffc5)}
+.util{background:linear-gradient(135deg,#5b627a,#7a84a6)}
+
+.section{
+  padding:20px;
+  max-width:1000px;
+  margin:auto
+}
+
+.summary{
+  margin-top:14px;
+  padding:14px;
+  background:var(--glass);
+  border-left:4px solid var(--gold);
+  border-radius:14px;
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 10px 25px rgba(0,0,0,.55);
+  font-size:14px
+}
+
+.roadBox{
+  margin-top:16px;
+  padding:14px;
+  background:var(--glass);
+  border-radius:16px;
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 10px 25px rgba(0,0,0,.55);
+  min-width:120px;
+  max-width:260px;
+  flex-shrink:0;
+
+  overflow-x:auto;          /* 🔥 เลื่อนเมื่อยาว */
+}
+
+.roadBox b{
+  display:block;
+  margin-bottom:6px;
+  color:var(--gold)
+}
+
+.road{
+  display:grid;
+  grid-auto-flow:column;
+  grid-template-rows:repeat(6,26px);
+  grid-auto-columns:26px;
+  gap:0;
+  width:max-content;        /* 🔥 ทำให้กริดกว้างตามจำนวนคอลัมน์จริง */
+}
+
+.dot{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+}
+.dot.B{background:#ff5a5a}
+.dot.P{background:#2a7fff}
+.dot.T{background:#42e695}
+
+.lines{margin-top:18px}
+.line{
+  margin:14px 0;
+  padding:12px 14px;
+  background:var(--glass);
+  border-radius:16px
+}
+.best{box-shadow:0 0 18px rgba(77,255,176,.45)}
+
+.history{
+  display:grid;
+  grid-template-columns:repeat(12,22px);
+  gap:6px;
+  margin-top:8px
+}
+.mark{
+  width:22px;height:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  border-radius:6px
+}
+.hit{background:#26e36f;color:#062b17}
+.miss{background:#ff4d4d;color:#fff}
+
+.betB{color:#ff9b9b;font-weight:700}
+.betP{color:#8ec5ff;font-weight:700}
+.betN{color:#888}
+
+@keyframes blinkScale{
+  0%{transform:scale(1.8);opacity:1}
+  50%{transform:scale(1.8);opacity:.25}
+  100%{transform:scale(1.8);opacity:1}
+}
+.blink{display:inline-block;animation:blinkScale 1s infinite}
+
+/* ===== PREMIUM MIN LOSE BOX ===== */
+.premiumBox{
+  margin-top:18px;
+  padding:26px;
+  border-radius:22px;
+
+  font-size:35px;          /* 🔥 ใหญ่ขึ้น */
+  line-height:1.8;
+
+  background:linear-gradient(135deg,#1c2448,#0e1330);
+  border:1px solid rgba(255,215,120,.5);
+
+  box-shadow:
+    0 0 0 1px rgba(255,215,120,.2),
+    0 0 40px rgba(255,215,120,.5),
+    0 15px 40px rgba(0,0,0,.7);
+}
+
+.premiumBox::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at top right,rgba(255,215,120,.25),transparent 60%);
+  pointer-events:none;
+}
+
+.premiumTitle{
+  font-weight:700;
+  font-size:15px;
+  color:#ffd86b;
+  letter-spacing:.5px;
+}
+
+.premiumContent{
+  margin-top:10px;
+  font-size:15px;
+}
+
+.premiumBet{
+  font-size:22px;
+  font-weight:900;
+}
+
+.premiumGlow{
+  animation:premiumBlink 1.2s infinite;
+}
+
+@keyframes premiumBlink{
+  0%{opacity:1}
+  50%{opacity:.4}
+  100%{opacity:1}
+}
+
+/* ===== ULTRA PREMIUM ASSISTANT ===== */
+
+.ultraBox{
+  margin-top:22px;
+  padding:30px;
+  border-radius:26px;
+
+  font-size:30px;        /* 🔥 ใหญ่ขึ้น */
+
+  background:linear-gradient(135deg,#ff00cc,#3333ff);
+  background-size:200% 200%;
+  animation:ultraBG 6s ease infinite;
+
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,.2),
+    0 0 50px rgba(255,0,200,.8),
+    0 0 80px rgba(0,100,255,.8);
+}
+
+@keyframes ultraBG{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+.ultraTitle{
+  font-weight:900;
+  font-size:16px;
+  letter-spacing:.6px;
+}
+
+.ultraContent{
+  margin-top:10px;
+  font-size:15px;
+  line-height:1.5;
+}
+
+.ultraStrong{
+  font-size:20px;
+  font-weight:900;
+}
+
+
+/* ===== GLOBAL GLOW ===== */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at 20% 30%,rgba(77,163,255,.15),transparent 40%),
+    radial-gradient(circle at 80% 70%,rgba(255,0,200,.12),transparent 40%);
+  pointer-events:none;
+  animation:bgMove 12s linear infinite;
+}
+@keyframes bgMove{
+  0%{transform:translate(0,0)}
+  50%{transform:translate(-40px,-20px)}
+  100%{transform:translate(0,0)}
+}
+
+/* ===== HEADER GLOW ===== */
+header{
+  position:relative;
+  overflow:hidden;
+}
+header::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.2),transparent);
+  transform:translateX(-100%);
+  animation:shine 5s infinite;
+}
+@keyframes shine{
+  100%{transform:translateX(100%)}
+}
+
+/* ===== BUTTON PREMIUM ===== */
+button{
+  position:relative;
+  overflow:hidden;
+  transition:.25s;
+}
+button:hover{
+  transform:translateY(-2px) scale(1.05);
+  box-shadow:
+    0 0 20px rgba(255,255,255,.25),
+    0 0 40px rgba(77,163,255,.4);
+}
+button::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.4),transparent);
+  transform:translateX(-100%);
+}
+button:hover::after{
+  animation:shine 1s;
+}
+
+/* ===== DOT EFFECT (ลูกบีดวิบวับ) ===== */
+.dot{
+  position:relative;
+  box-shadow:0 0 6px rgba(255,255,255,.2);
+}
+.dot.B{box-shadow:0 0 8px #ff5a5a,0 0 20px rgba(255,90,90,.5)}
+.dot.P{box-shadow:0 0 8px #2a7fff,0 0 20px rgba(42,127,255,.5)}
+.dot.T{box-shadow:0 0 8px #42e695,0 0 20px rgba(66,230,149,.5)}
+
+.dot::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.6),transparent 70%);
+  opacity:.3;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{transform:scale(1);opacity:.4}
+  50%{transform:scale(1.4);opacity:.1}
+  100%{transform:scale(1);opacity:.4}
+}
+
+/* ===== LINE CARD ANIMATION ===== */
+.line{
+  transition:.3s;
+  position:relative;
+}
+.line:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:
+    0 0 25px rgba(77,255,176,.3),
+    0 10px 30px rgba(0,0,0,.6);
+}
+
+/* ===== BEST LINE GLOW ===== */
+.best{
+  animation:bestGlow 1.2s infinite alternate;
+}
+@keyframes bestGlow{
+  0%{box-shadow:0 0 10px rgba(77,255,176,.4)}
+  100%{box-shadow:0 0 25px rgba(77,255,176,.9)}
+}
+
+/* ===== HISTORY HIT/MISS FX ===== */
+.hit{
+  animation:popHit .4s;
+}
+.miss{
+  animation:shakeMiss .3s;
+}
+
+@keyframes popHit{
+  0%{transform:scale(.5)}
+  100%{transform:scale(1)}
+}
+@keyframes shakeMiss{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-2px)}
+  50%{transform:translateX(2px)}
+  75%{transform:translateX(-2px)}
+  100%{transform:translateX(0)}
+}
+
+/* ===== PREMIUM BOX UPGRADE ===== */
+.premiumBox{
+  animation:premiumGlow 3s infinite alternate;
+}
+@keyframes premiumGlow{
+  0%{box-shadow:0 0 15px rgba(255,215,120,.3)}
+  100%{box-shadow:0 0 40px rgba(255,215,120,.7)}
+}
+
+/* ===== ULTRA BOX INSANE EFFECT ===== */
+.ultraBox{
+  animation:ultraMove 8s ease infinite;
+}
+@keyframes ultraMove{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.03)}
+  100%{transform:scale(1)}
+}
+
+.ultraStrong{
+  animation:ultraBlink 1s infinite;
+}
+@keyframes ultraBlink{
+  0%{opacity:1}
+  50%{opacity:.3}
+  100%{opacity:1}
+}
+
+/* ===== SCROLL BAR STYLE ===== */
+::-webkit-scrollbar{
+  height:6px;
+}
+::-webkit-scrollbar-track{
+  background:#111;
+}
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(90deg,#4da3ff,#ff00cc);
+  border-radius:10px;
+}
+
+.winrateBig{
+  font-size:38px;
+  font-weight:900;
+  color:#4dffb0;
+  text-shadow:0 0 10px #4dffb0,0 0 25px rgba(77,255,176,.8);
+  animation:winBlink 1s infinite;
+  display:inline-block;
+}
+
+@keyframes winBlink{
+  0%{opacity:1;transform:scale(1)}
+  50%{opacity:.3;transform:scale(1.15)}
+  100%{opacity:1;transform:scale(1)}
+}
+
+.ultraContent span{
+  display:inline-block;
+  padding:8px 20px;
+  border-radius:12px;
+  background:rgba(0,0,0,.3);
+}
+
+
+
+/* ===== QUICK VIEW FLOAT ===== */
+.quickBox{
+  position:fixed;
+  top:20px;
+  right:20px;
+  width:220px;
+  padding:14px;
+  border-radius:16px;
+
+  background:
+    linear-gradient(135deg, rgba(0,255,255,.12), rgba(255,0,255,.12)),
+    linear-gradient(180deg,#050505,#0f172a);
+
+  border:1px solid rgba(0,255,255,.4);
+
+  box-shadow:
+    0 0 20px rgba(0,255,255,.4),
+    0 0 40px rgba(255,0,255,.3);
+
+  z-index:999;
+  backdrop-filter:blur(6px);
+}
+
+.quickTitle{
+  font-size:13px;
+  font-weight:700;
+  color:#00ffff;
+  margin-bottom:10px;
+  text-align:center;
+}
+
+.quickItem{
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+  padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.qP{color:#8ec5ff;font-weight:700;}
+.qB{color:#ff9b9b;font-weight:700;}
+.qIndex{color:#aaa}
+.qPct{color:#4dffb0;font-weight:700}
+
+/* ==========================================
+   REGIME CHANGE GUARD PRO
+   ตรวจปิงปอง / มังกร / จุดเปลี่ยนรูปแบบ
+========================================== */
+
+#regimeGuard{
+  position:fixed;
+  right:16px;
+  bottom:16px;
+  top:auto;
+
+  width:220px;
+  max-height:calc(100vh - 32px);
+  box-sizing:border-box;
+  padding:12px;
+
+  border-radius:15px;
+  background:linear-gradient(160deg,#101b2d,#080c16);
+  border:1px solid rgba(0,255,255,.55);
+
+  box-shadow:
+    0 0 12px rgba(0,255,255,.18),
+    0 0 24px rgba(80,80,255,.12);
+
+  color:#edf6ff;
+  z-index:998;
+  font-size:12px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+}
+
+#regimeGuard .rg-title{
+  text-align:center;
+  font-weight:900;
+  font-size:13px;
+  color:#00ffff;
+  margin-bottom:9px;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(0,255,255,.2);
+}
+
+#regimeGuard .rg-status{
+  padding:8px;
+  border-radius:9px;
+  margin-bottom:8px;
+  background:rgba(255,255,255,.045);
+  line-height:1.6;
+}
+
+#regimeGuard .rg-row{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:5px 0;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+#regimeGuard .rg-good{
+  color:#4dffb0;
+  font-weight:800;
+}
+
+#regimeGuard .rg-warn{
+  color:#ffd86b;
+  font-weight:800;
+}
+
+#regimeGuard .rg-danger{
+  color:#ff7373;
+  font-weight:800;
+}
+
+#regimeGuard .rg-note{
+  margin-top:9px;
+  line-height:1.6;
+  color:#c5d0e8;
+  font-size:11px;
+}
+
+/* หน้าจอมือถือ */
+@media(max-width:600px){
+  #regimeGuard{
+    top:auto;
+    bottom:12px;
+    right:12px;
+    width:min(220px,calc(100vw - 24px));
+    max-height:55vh;
+    padding:9px;
+    font-size:11px;
+  }
+
+  #regimeGuard .rg-title{
+    font-size:12px;
+  }
+}
+/* ===== MINI BEAD ROAD INSIDE REGIME GUARD ===== */
+#rgMiniRoadWrap{
+  width:100%;
+  box-sizing:border-box;
+  margin-top:10px;
+  padding:8px;
+  border-radius:10px;
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(0,255,255,.20);
+  overflow:hidden;
+}
+
+#rgMiniRoadTitle{
+  color:#00ffff;
+  font-size:11px;
+  font-weight:900;
+  text-align:center;
+  margin-bottom:7px;
+}
+
+#rgMiniRoadViewport{
+  width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:#00bcd4 #111827;
+}
+
+#rgMiniRoad{
+  display:grid;
+  grid-auto-flow:column;
+  grid-template-rows:repeat(6,13px);
+  grid-auto-columns:13px;
+  gap:2px;
+  width:max-content;
+  min-width:100%;
+  box-sizing:border-box;
+  justify-content:start;
+}
+
+.rg-mini-cell{
+  width:13px;
+  height:13px;
+  box-sizing:border-box;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.035);
+}
+
+.rg-mini-cell.P{
+  background:#2a7fff;
+  border-color:#72b4ff;
+  box-shadow:0 0 5px rgba(42,127,255,.65);
+}
+
+.rg-mini-cell.B{
+  background:#ff5a5a;
+  border-color:#ff9999;
+  box-shadow:0 0 5px rgba(255,90,90,.65);
+}
+
+.rg-mini-cell.T{
+  background:#42e695;
+  border-color:#9affc9;
+  box-shadow:0 0 5px rgba(66,230,149,.65);
+}
+
+/* ===== MINI ROAD COUNTERS ===== */
+#rgMiniRoadStats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:4px;
+  margin-top:8px;
+}
+
+.rg-mini-stat{
+  min-width:0;
+  box-sizing:border-box;
+  padding:5px 2px;
+  border-radius:7px;
+  background:rgba(255,255,255,.045);
+  text-align:center;
+  font-size:10px;
+  line-height:1.5;
+}
+
+.rg-mini-stat b{
+  display:block;
+  font-size:10px;
+}
+
+.rg-mini-stat span{
+  display:block;
+  font-size:12px;
+  font-weight:900;
+}
+
+.rg-mini-stat.p b,
+.rg-mini-stat.p span{color:#72b4ff}
+
+.rg-mini-stat.b b,
+.rg-mini-stat.b span{color:#ff8585}
+
+.rg-mini-stat.t b,
+.rg-mini-stat.t span{color:#55f5a5}
+
+.rg-mini-stat.total b,
+.rg-mini-stat.total span{color:#ffd86b}
+</style>
+</head>
+
+<body>
+
+  <!-- ===== QUICK VIEW ===== -->
+<div id="quickBox" class="quickBox">
+  <div class="quickTitle">⚡ Ai TOP 6 ลำดับ % สูงสุด</div>
+  <div id="quickContent">รอข้อมูล...</div>
+</div>
+
+<!-- ===== REGIME CHANGE GUARD PRO ===== -->
+<div id="regimeGuard">
+
+  <div class="rg-title">
+    ⚡ ระบบเฝ้าระวังการเปลี่ยนรูปแบบเกม
+  </div>
+
+  <div id="rgStatus" class="rg-status">
+    รอข้อมูลผลไพ่...
+  </div>
+
+  <div class="rg-row">
+    <span>ปิงปอง</span>
+    <span id="rgPing" class="rg-warn">ยังไม่พบ</span>
+  </div>
+
+  <div class="rg-row">
+    <span>มังกรล่าสุด</span>
+    <span id="rgDragon" class="rg-warn">ยังไม่พบ</span>
+  </div>
+
+  <div class="rg-row">
+    <span>รูปแบบเปลี่ยน</span>
+    <span id="rgChange" class="rg-warn">ยังไม่ชัด</span>
+  </div>
+
+  <div class="rg-row">
+    <span>ข้อมูลย้อนหลัง</span>
+    <span id="rgSample">0 ไม้</span>
+  </div>
+
+  <div class="rg-row">
+    <span>สาย TOP 6</span>
+    <span id="rgTopStatus" class="rg-warn">รอตรวจสอบ</span>
+  </div>
+
+  <div id="rgAdvice" class="rg-note">
+    ป้อนผลไพ่เพื่อเริ่มตรวจจับรูปแบบ
+  </div>
+
+  <!-- ===== MINI BEAD ROAD ===== -->
+  <div id="rgMiniRoadWrap">
+
+    <div id="rgMiniRoadTitle">
+      📊 มินิบีดโรด • ผลไพ่ย้อนหลัง
+    </div>
+
+    <div id="rgMiniRoadViewport">
+      <div id="rgMiniRoad"></div>
+    </div>
+
+    <div id="rgMiniRoadStats">
+
+      <div class="rg-mini-stat p">
+        <b>PLAYER</b>
+        <span id="rgMiniP">0</span>
+      </div>
+
+      <div class="rg-mini-stat b">
+        <b>BANKER</b>
+        <span id="rgMiniB">0</span>
+      </div>
+
+      <div class="rg-mini-stat t">
+        <b>TIE</b>
+        <span id="rgMiniT">0</span>
+      </div>
+
+      <div class="rg-mini-stat total">
+        <b>TOTAL</b>
+        <span id="rgMiniTotal">0</span>
+      </div>
+
+    </div>
+  </div>
+  <!-- ===== END MINI BEAD ROAD ===== -->
+
+</div>
+<!-- ===== END REGIME CHANGE GUARD ===== -->
+
+<div id="loginBox">
+  <div class="loginPanel">
+    <h3>🔐 Premium Login</h3>
+    <input id="user" placeholder="User">
+    <input id="pass" type="password" placeholder="Password">
+    <input type="checkbox" id="showPass" onchange="togglePass()"> แสดงรหัสผ่าน
+    <button onclick="login()">เข้าสู่ระบบ</button>
+    <div id="loginErr" class="loginErr"></div>
+  </div>
+</div>
+
+<div id="app">
+<header>
+  <h2>📊 Smart Baccarat Killer อัพเดท 10 สาย จำอดีต แต่ฟอร์มสด</h2>
+  <div>Professional Analysis System</div>
+  
+</header>
+
+<div class="section">
+<button class="player" onclick="add('P')">PLAYER</button>
+<button class="banker" onclick="add('B')">BANKER</button>
+<button class="tie" onclick="add('T')">TIE</button>
+<button class="util" onclick="undo()">UNDO</button>
+<button class="util" onclick="clearAll()">CLEAR</button>
+</div>
+
+<div class="section" style="display:flex;gap:20px;align-items:flex-start;flex-wrap:nowrap">
+<div>
+
+  <!-- summary -->
+  <div id="summary" class="summary"></div>
+  
+
+<div id="finalVerdictBox" class="summary"
+     style="border-left:4px solid #ffd86b">
+  <b>⚡ AI FINAL VERDICT • สรุปก่อนเดิมพัน</b>
+  <div id="finalVerdict" style="margin-top:10px;line-height:1.9">
+    กำลังรอข้อมูล WALK-FORWARD...
+  </div>
+</div>
+
+
+<!-- ===== WALK-FORWARD REPORT ===== -->
+<div id="wfReport" class="summary">
+  <b>🧪 WALK-FORWARD • ผลทดสอบจริง</b>
+  <div id="wfStats" style="margin-top:10px;line-height:1.9">
+    เริ่มบันทึกเมื่อมีผลไพ่ใหม่
+  </div>
+  <div style="margin-top:10px">
+    <button class="util" onclick="exportWalkForward()">
+      EXPORT CSV
+    </button>
+    <button class="util" onclick="resetWalkForward()">
+      RESET TEST
+    </button>
+  </div>
+  <div id="wfRegimeStats" style="margin-top:10px;line-height:1.8"></div>
+  <div id="wfRecent" style="margin-top:10px;overflow-x:auto"></div>
+</div>
+<!-- ===== END WALK-FORWARD REPORT ===== -->
+
+  <div id="minLoseBox" class="premiumBox">
+  <div class="premiumTitle">🔥 PREMIUM • สายเคยผิดติดน้อย</div>
+  <div id="minLoseContent" class="premiumContent">
+    รอข้อมูล...
+  </div>
+</div>
+
+
+<div id="ultraBox" class="ultraBox">
+  <div class="ultraTitle">🚀 กล่องผู้ช่วย ULTRA PREMIUM ASSISTANT</div>
+  <div id="ultraContent" class="ultraContent">
+    รอการวิเคราะห์...
+  </div>
+</div>
+
+
+  <!-- roadBox -->
+  <div class="roadBox">
+    <b>บีดโรด</b>
+    <div id="road" class="road"></div>
+  </div>
+
+</div>
+
+<div class="lines" id="lines" style="flex:1"></div>
+</div>
+</div>
+
+<script>
+
+  function togglePass(){
+  const pass = document.getElementById("pass");
+  const cb = document.getElementById("showPass");
+
+  pass.type = cb.checked ? "text" : "password";
+}
+
+
+
+/* ===== LOGIN (API VERSION) ===== */
+async function login(){
+
+  const userInput = document.getElementById("user");
+  const passInput = document.getElementById("pass");
+
+  const loginBoxEl = document.getElementById("loginBox");
+  const appEl = document.getElementById("app");
+  const loginErrEl = document.getElementById("loginErr");
+
+  loginErrEl.textContent="กำลังตรวจสอบ...";
+
+  try{
+
+    const res = await fetch(
+      "https://morning-block-55bb.havanalanna.workers.dev/?user="
+      + encodeURIComponent(userInput.value)
+      + "&pass=" + encodeURIComponent(passInput.value)
+    );
+
+    const data = await res.json();
+
+    if(data.status==="ok"){
+
+      loginBoxEl.style.display="none";
+      appEl.style.display="block";
+      
+      render();
+
+      /* 🔒 ตรวจ License ทุก 30 วิ */
+      const user = userInput.value;
+      const pass = passInput.value;
+
+      setInterval(async ()=>{
+
+        try{
+
+          const r = await fetch(
+            "https://morning-block-55bb.havanalanna.workers.dev/?user="
+            + encodeURIComponent(user)
+            + "&pass=" + encodeURIComponent(pass)
+          );
+
+          const j = await r.json();
+
+          if(j.status!=="ok"){
+            alert("⛔ License ถูกปิดใช้งาน");
+            location.reload();
+          }
+
+        }catch(e){
+          console.log("License check error");
+        }
+
+      },30000);
+
+    }else{
+      loginErrEl.textContent="User หรือ Password ไม่ถูกต้อง";
+    }
+
+  }catch(e){
+    loginErrEl.textContent="ไม่สามารถเชื่อมต่อ License Server";
+  }
+
+}
+
+
+
+/* ===== LOGIC เดิม 100% ===== */
+let road = [];
+
+/* ===== WALK-FORWARD TEST ENGINE ===== */
+let wfPending = null;
+let wfLog = [];
+let wfStatsByLine = Array.from({length:10}, () => ({
+  hit: 0,
+  miss: 0,
+  currentLose: 0,
+  maxLose: 0
+}));
+
+// จำแนกรูปแบบจากข้อมูลก่อนตาที่กำลังทำนาย
+function wfClassify(history) {
+  const clean = history.filter(x => x === "P" || x === "B");
+  const last6 = clean.slice(-6);
+
+  if (last6.length >= 4 &&
+      last6.every((x,i) => i === 0 || x !== last6[i-1])) {
+    return "ปิงปอง";
+  }
+
+  let streak = 0;
+  const last = clean.at(-1);
+
+  for (let i = clean.length - 1; i >= 0; i--) {
+    if (clean[i] === last) streak++;
+    else break;
+  }
+
+  if (streak >= 4) return "มังกร";
+  return "รูปแบบอื่น";
+}
+
+// บันทึกผลทำนายที่ถูกสร้างจากข้อมูลก่อนหน้าตานี้
+function wfRecord(predictions, actual, regime, handNo) {
+  if (!predictions || !["P","B"].includes(actual)) return;
+
+  predictions.forEach((pick, i) => {
+    if (!["P","B"].includes(pick)) return;
+
+    const s = wfStatsByLine[i];
+    const hit = pick === actual;
+
+    if (hit) {
+      s.hit++;
+      s.currentLose = 0;
+    } else {
+      s.miss++;
+      s.currentLose++;
+      s.maxLose = Math.max(s.maxLose, s.currentLose);
+    }
+
+    wfLog.push({
+      hand: handNo,
+      line: i + 1,
+      pick,
+      actual,
+      result: hit ? "WIN" : "LOSS",
+      regime,
+      hitBefore: s.hit,
+      missBefore: s.miss
+    });
+  });
+}
+
+let lines = Array.from({length:10}, () => ({
+
+  hit:0,
+  miss:0,
+  history:[],
+  bet:null,
+  pending:null,
+  pct:0
+}));
+
+
+function add(r) {
+  // 1) ตรวจคำทำนายที่ถูกบันทึกไว้ก่อนผลตานี้
+  // TIE ถือเป็น Push: ไม่เพิ่มสถิติถูกหรือผิด
+  if (r !== "T" && wfPending) {
+    wfRecord(
+      wfPending.picks,
+      r,
+      wfPending.regime,
+      road.length + 1
+    );
+  }
+
+  // 2) ประเมินผลงานของ 10 สายตามระบบเดิม
+  lines.forEach(l => {
+    if (l.pending && r !== "T") {
+      if (l.pending === r) {
+        l.hit++;
+        l.history.push("W");
+      } else {
+        l.miss++;
+        l.history.push("L");
+      }
+    }
+  });
+
+  // 3) เพิ่มผลไพ่จริงหลังจากตรวจคำทำนายแล้ว
+  road.push(r);
+
+  // 4) สร้างคำทำนายสำหรับตาถัดไป
+  // โดยใช้ข้อมูลที่มีอยู่ ณ เวลานี้เท่านั้น
+  const nextPicks = predict();
+
+  lines.forEach((l, i) => {
+    l.bet = l.pending = nextPicks[i];
+  });
+
+  // เก็บคำทำนายสำหรับตรวจสอบผลไพ่ตาถัดไป
+  // TIE ไม่ทำให้คำทำนายเดิมหมดอายุ
+  if (r !== "T") {
+    wfPending = {
+      picks: [...nextPicks],
+      regime: wfClassify(road),
+      createdAfterHand: road.length
+    };
+  }
+
+  render();
+}
+
+
+function undo(){if(!road.length)return;road.pop();recalc();}
+
+function clearAll() {
+  road = [];
+
+  lines.forEach(l => Object.assign(l, {
+    hit: 0,
+    miss: 0,
+    history: [],
+    bet: null,
+    pending: null,
+    pct: 0
+  }));
+
+  wfPending = null;
+  wfLog = [];
+  wfStatsByLine = Array.from({length:10}, () => ({
+    hit: 0,
+    miss: 0,
+    currentLose: 0,
+    maxLose: 0
+  }));
+
+  render();
+}
+
+function recalc(){let t=[...road];clearAll();t.forEach(add);}
+
+function predict() {
+
+  // ✅ ตัด T ออกก่อน
+  let clean = road.filter(x => x !== 'T');
+
+  let p = clean.filter(x => x === 'P').length;
+  let b = clean.filter(x => x === 'B').length;
+  let last = clean.at(-1);
+
+  let r = new Array(10).fill(null);
+
+  // ===== Mirror Balance =====
+  let recent10 = clean.slice(-10);
+  let pRecent = recent10.filter(x => x === 'P').length;
+  let bRecent = recent10.filter(x => x === 'B').length;
+
+  // ===== 0 Balance =====
+  r[0] = b > p ? 'B' : 'P';
+
+  // ===== 1 Follow =====
+  r[1] = last || null;
+
+  // ===== 2 Opposite =====
+  r[2] = last ? (last === 'B' ? 'P' : 'B') : null;
+
+  // ===== streak =====
+  let s = 1;
+  for (let i = clean.length - 1; i > 0; i--) {
+    if (clean[i] === clean[i - 1]) s++;
+    else break;
+  }
+
+  // ===== 3 Streak Follow =====
+  r[3] = s >= 2 ? last : null;
+
+  // ===== 4 Streak Cut =====
+  r[4] = s >= 2 ? (last === 'B' ? 'P' : 'B') : null;
+
+  // ===== 5 Trend Break =====
+  r[5] = s >= 3 ? (last === 'B' ? 'P' : 'B') : null;
+
+  // ===== 6 Mirror 10 =====
+  if (recent10.length >= 4) {
+    if (pRecent > bRecent) r[6] = 'B';
+    else if (bRecent > pRecent) r[6] = 'P';
+    else r[6] = last || null;
+  }
+
+  // ===== 7 Anti Fake =====
+  let last4 = clean.slice(-4);
+  if (last4.length === 4) {
+    let pattern = last4.join('');
+    r[7] = (pattern === 'BPBP' || pattern === 'PBPB') ? null : last;
+  }
+
+  // ===== 8 Deep Break =====
+  if (s >= 4) {
+    let recent5 = clean.slice(-5);
+    let same = recent5.filter(x => x === last).length;
+    if (same >= 4) r[8] = last === 'B' ? 'P' : 'B';
+  }
+
+// ===== 9 ULTRA LOCK (แทงทุกตา 100%) =====
+let recent6 = clean.slice(-6);
+
+// 🔥 ไม่มีข้อมูลเลย
+if (recent6.length === 0) {
+  r[9] = 'P'; // เปิด P ตายตัว
+}
+else {
+
+  let score = 0;
+
+  recent6.forEach((x, i) => {
+    let w = i + 1;
+    score += x === 'P' ? w : -w;
+  });
+
+  // 🔥 ถ้า score = 0 → ใช้ last (กันแกว่ง)
+  if (score === 0) {
+    if (last) {
+      r[9] = last === 'P' ? 'B' : 'P';
+    } else {
+      r[9] = 'P'; // กัน undefined
+    }
+  } else {
+    r[9] = score > 0 ? 'P' : 'B';
+  }
+}
+
+// ===== 🔥 กันปิงปอง (override ทุกกรณี) =====
+let pattern = clean.slice(-6).join('');
+if (/PBPBPB|BPBPBP/.test(pattern)) {
+  if (last) {
+    r[9] = last === 'P' ? 'B' : 'P';
+  } else {
+    r[9] = 'P';
+  }
+}
+
+// ===== 🔒 FINAL LOCK (กันหลุด 100%) =====
+if (r[9] !== 'P' && r[9] !== 'B') {
+  r[9] = last ? (last === 'P' ? 'B' : 'P') : 'P';
+}
+
+  // ===== Safe Mode =====
+  if (r[7] === null) {
+    r[8] = null;
+  }
+
+  return r;
+}
+
+ function renderRoad(){
+  let html='';
+  let totalCols=Math.ceil(road.length/6);
+
+  for(let c=0;c<totalCols;c++){
+    for(let r=0;r<6;r++){
+      let index=c*6+r;
+      let val=road[index];
+
+      html+= val
+        ? `<div class="dot ${val}"></div>`
+        : `<div class="dot"></div>`;  // ให้ขนาดเท่ากัน
+    }
+  }
+
+  roadEl.innerHTML=html;
+}
+// ===== MINI BEAD ROAD: SYNC WITH MAIN ROAD =====
+function renderMiniRoad(){
+
+  const miniRoad = document.getElementById("rgMiniRoad");
+  if(!miniRoad) return;
+
+  // ใช้ประวัติไพ่ชุดเดียวกับบีดโรดหลัก
+  const totalCols = Math.max(1, Math.ceil(road.length / 6));
+
+  let html = "";
+
+  for(let c = 0; c < totalCols; c++){
+    for(let r = 0; r < 6; r++){
+
+      const index = c * 6 + r;
+      const val = road[index];
+
+      html += val
+        ? `<div class="rg-mini-cell ${val}" title="${val}"></div>`
+        : `<div class="rg-mini-cell"></div>`;
+    }
+  }
+
+  miniRoad.innerHTML = html;
+
+  // นับผลไพ่ทั้งหมดจากประวัติจริง
+  const countP = road.filter(x => x === "P").length;
+  const countB = road.filter(x => x === "B").length;
+  const countT = road.filter(x => x === "T").length;
+
+  document.getElementById("rgMiniP").textContent = countP;
+  document.getElementById("rgMiniB").textContent = countB;
+  document.getElementById("rgMiniT").textContent = countT;
+  document.getElementById("rgMiniTotal").textContent = road.length;
+}
+const summary = document.getElementById('summary');
+const linesEl = document.getElementById('lines');
+const roadEl = document.getElementById('road');
+function render() {
+
+renderRoad();
+
+// ===== MINI BEAD ROAD =====
+renderMiniRoad();
+
+
+  // ===== WALK-FORWARD REPORT =====
+  renderWalkForward();
+
+  // ===== % =====
+  lines.forEach(l=>{
+
+    let t=l.hit+l.miss;
+    l.pct=(l.bet&&t)?Math.round(l.hit/t*100):0;
+  });
+
+  // ===== SUMMARY =====
+  let active=lines.filter(l=>(l.bet==='B'||l.bet==='P')&&(l.hit+l.miss));
+  let maxAcc=active.length?Math.max(...active.map(l=>l.pct)):0;
+
+  let best = lines.filter(l=>l.pct === maxAcc);
+  let ultraWin = best.reduce((a,l)=>a+l.hit,0);
+  let ultraPlay = best.reduce((a,l)=>a+(l.hit+l.miss),0);
+
+  let winrate = ultraPlay
+    ? Math.round(ultraWin / ultraPlay * 100)
+    : 0;
+
+  let blinkLines=active.filter(l=>l.pct===maxAcc);
+  let blinkP=blinkLines.filter(l=>l.bet==='P').length;
+  let blinkB=blinkLines.filter(l=>l.bet==='B').length;
+
+  let countP = road.filter(x=>x==='P').length;
+  let countB = road.filter(x=>x==='B').length;
+  let countT = road.filter(x=>x==='T').length;
+  let total = road.length;
+
+  summary.innerHTML=`
+  📊 <b>เงื่อนไข</b><br>
+  สาย % สูงสุด = ${maxAcc}%<br>
+  Blink = ${blinkLines.length}<br>
+  P:${blinkP} | B:${blinkB}<hr>
+
+  🎯 สถิติไพ่<br>
+  P = ${countP} | B = ${countB} | T = ${countT}<br>
+  TOTAL = ${total} ตา<br>
+
+  🔥 🔥 Winrate = <span class="winrateBig">${winrate}%</span>
+  `;
+
+  // ===== LINES =====
+  linesEl.innerHTML = lines.map((l,i)=>{
+    let betTxt='–',betCls='betN';
+    if(l.bet==='B'){betTxt='B';betCls='betB'}
+    if(l.bet==='P'){betTxt='P';betCls='betP'}
+
+    let blink=(l.bet&&(l.hit+l.miss)&&l.pct===maxAcc);
+
+    let historyHTML = `
+      <div class="history">
+        ${l.history.slice(-24).map(h =>
+          `<div class="mark ${h==='W'?'hit':'miss'}">${h}</div>`
+        ).join('')}
+      </div>
+    `;
+
+    return `
+    <div class="line ${blink?'best':''}">
+      สาย ${i+1} :
+      <span class="${betCls} ${blink?'blink':''}">${betTxt}</span>
+      ✔${l.hit} ❌${l.miss} (${l.pct}%)
+      ${historyHTML}
+    </div>`;
+  }).join('');
+
+  // ===== DOM =====
+  const minLoseContent = document.getElementById('minLoseContent');
+  const ultraContent = document.getElementById('ultraContent');
+
+  if(!minLoseContent || !ultraContent) return;
+
+  // ===== CANDIDATES =====
+  let candidates = lines
+    .filter(l => (l.bet==='B'||l.bet==='P') && (l.hit+l.miss)>=1)
+    .map((l,i)=>{
+
+      let loseMax = maxLoseStreak(l.history);
+      let loseNow = currentLoseStreak(l.history);
+
+      return {
+        index:i,
+        bet:l.bet,
+        pct:l.pct,
+        loseMax,
+        loseNow,
+        total:l.hit+l.miss,
+        score:(loseMax*2)+loseNow-(l.pct/10)
+      };
+    });
+
+  if(!candidates.length){
+    minLoseContent.innerHTML="รอข้อมูล...";
+    ultraContent.innerHTML="รอการวิเคราะห์...";
+    updateQuickView();
+    return;
+  }
+
+  // ===== BEST =====
+  let minScore = Math.min(...candidates.map(c=>c.score));
+  let bestLines = candidates.filter(c=>c.score===minScore);
+
+  // ===== PREMIUM =====
+  minLoseContent.innerHTML = bestLines.map(b=>{
+    let color=b.bet==='P'?'#8ec5ff':'#ff9b9b';
+
+    return `
+    สาย ${b.index+1}<br>
+    <span style="
+      color:${color};
+      font-size:28px;
+      font-weight:900;
+      text-shadow:0 0 8px ${color};
+      animation:ultraBlink 1s infinite;
+    ">
+    ${b.bet}
+    </span><br>
+    แพ้สูงสุด ${b.loseMax}<br>
+    แพ้ติด ${b.loseNow}<br>
+    SCORE ${b.score.toFixed(2)}
+    <hr>`;
+  }).join('');
+
+  // ===== ULTRA =====
+  let pLines = bestLines.filter(b=>b.bet==='P');
+  let bLines = bestLines.filter(b=>b.bet==='B');
+
+  if(pLines.length === 0 || bLines.length === 0){
+    ultraContent.innerHTML = "⛔ สีไม่คละ งดแทง";
+    updateQuickView();
+    return;
+  }
+
+  let strongP = pLines.filter(x=>x.pct>=50);
+  let strongB = bLines.filter(x=>x.pct>=50);
+
+  if(!strongP.length || !strongB.length){
+    ultraContent.innerHTML = "⚠️ คละจริง แต่ % อ่อน งดแทง";
+    updateQuickView();
+    return;
+  }
+
+  let isChop = /BPBPBP|PBPBPB/.test(road.slice(-6).join(''));
+  if(isChop){
+    ultraContent.innerHTML="🚫 ปิงปอง งดแทง";
+    updateQuickView();
+    return;
+  }
+
+  let pPower = pLines.reduce((a,c)=>a+c.pct,0);
+  let bPower = bLines.reduce((a,c)=>a+c.pct,0);
+
+  let final = pPower===bPower
+    ? (road.at(-1) || 'P')
+    : (pPower>bPower?'P':'B');
+
+  let color = final==='P'?'#8ec5ff':'#ff9b9b';
+
+  ultraContent.innerHTML=`
+  🎯 ตัวแทง:
+  <span style="
+    color:${color};
+    font-size:40px;
+    font-weight:900;
+    text-shadow:0 0 12px ${color};
+    animation:ultraBlink 1s infinite;
+  ">
+  ${final}
+  </span>
+
+  📊 Power<br>
+  P:${pPower} | B:${bPower}
+  `;
+
+  updateQuickView();
+}
+
+
+/* =========================================
+   AI FINAL VERDICT
+   ใช้ผล WALK-FORWARD จริงประกอบการตัดสินใจ
+   ไม่เปลี่ยนสูตรทำนายเดิม
+========================================= */
+function updateFinalVerdict() {
+  const el = document.getElementById("finalVerdict");
+  if (!el) return;
+
+  const total = wfLog.length;
+  const hits = wfLog.filter(x => x.result === "WIN").length;
+  const misses = total - hits;
+  const rate = total ? hits / total * 100 : 0;
+
+  const profit = wfLog.reduce((sum, x) => {
+    if (x.result === "LOSS") return sum - 1;
+    return sum + (x.pick === "B" ? 0.95 : 1);
+  }, 0);
+
+  const valid = lines
+    .map((l, i) => ({
+      line: i + 1,
+      bet: l.bet,
+      n: wfStatsByLine[i].hit + wfStatsByLine[i].miss,
+      hit: wfStatsByLine[i].hit,
+      miss: wfStatsByLine[i].miss,
+      loseNow: wfStatsByLine[i].currentLose,
+      rate: (wfStatsByLine[i].hit + wfStatsByLine[i].miss)
+        ? wfStatsByLine[i].hit /
+          (wfStatsByLine[i].hit + wfStatsByLine[i].miss) * 100
+        : 0
+    }))
+    .filter(x =>
+      (x.bet === "P" || x.bet === "B") &&
+      x.n >= 20
+    );
+
+  const pLines = valid.filter(x => x.bet === "P");
+  const bLines = valid.filter(x => x.bet === "B");
+
+  const pScore = pLines.length
+    ? pLines.reduce((s, x) => s + x.rate, 0) / pLines.length
+    : null;
+
+  const bScore = bLines.length
+    ? bLines.reduce((s, x) => s + x.rate, 0) / bLines.length
+    : null;
+
+  const recent = wfLog.slice(-30);
+  const recentHits = recent.filter(x => x.result === "WIN").length;
+  const recentRate = recent.length
+    ? recentHits / recent.length * 100
+    : 0;
+
+  const currentRegime = wfClassify(road);
+  const regimeData = wfLog.filter(x => x.regime === currentRegime);
+  const regimeHits = regimeData.filter(x => x.result === "WIN").length;
+  const regimeRate = regimeData.length
+    ? regimeHits / regimeData.length * 100
+    : 0;
+
+  let verdict = "⏸️ WAIT • งดเดิมพัน";
+  let color = "#ffd86b";
+  let reason = [];
+
+  if (total < 30) {
+    reason.push("ข้อมูลทดสอบยังน้อยกว่า 30 คำทำนาย");
+  }
+
+  if (total >= 30 && rate <= 50) {
+    reason.push("อัตราถูกจริงรวมไม่เกิน 50%");
+  }
+
+  if (profit <= 0) {
+    reason.push("ผลตอบแทนจำลองสะสมยังไม่เป็นบวก");
+  }
+
+  if (recent.length >= 10 && recentRate <= 50) {
+    reason.push("30 รายการล่าสุดที่มีอยู่ยังไม่แสดงความได้เปรียบ");
+  }
+
+  if (regimeData.length >= 10 && regimeRate <= 50) {
+    reason.push("รูปแบบเกมปัจจุบันมีผลงานย้อนหลังไม่เกิน 50%");
+  }
+
+  const enoughData = total >= 50;
+  const positiveOverall = rate > 52 && profit > 0;
+  const positiveRecent = recent.length >= 20 && recentRate > 52;
+  const positiveRegime = regimeData.length >= 10 && regimeRate > 52;
+
+  const pReady = pLines.length > 0 && pScore >= 55;
+  const bReady = bLines.length > 0 && bScore >= 55;
+
+  if (
+    enoughData &&
+    positiveOverall &&
+    positiveRecent &&
+    positiveRegime &&
+    pReady !== bReady
+  ) {
+    verdict = pReady ? "🔵 P • PLAYER" : "🔴 B • BANKER";
+    color = pReady ? "#8ec5ff" : "#ff9b9b";
+    reason = [
+      "สัญญาณจากสายที่ผ่านเกณฑ์เอนเอียงไปทิศทางเดียว",
+      "ผลงานรวมและผลงานล่าสุดผ่านเกณฑ์คัดกรอง",
+      "รูปแบบเกมปัจจุบันมีผลย้อนหลังสนับสนุน"
+    ];
+  } else {
+    if (pReady && bReady) {
+      reason.push("ทั้งสองฝั่งมีสัญญาณ จึงยังไม่ชัดเจน");
+    } else if (!pReady && !bReady) {
+      reason.push("ยังไม่มีฝั่งที่ผ่านเกณฑ์สายย้อนหลัง");
+    } else {
+      reason.push("ข้อมูลยืนยันข้ามช่วงยังไม่ครบ");
+    }
+  }
+
+  el.innerHTML = `
+    <div style="font-size:24px;font-weight:900;color:${color}">
+      ${verdict}
+    </div>
+    <div style="margin-top:8px">
+      <b>เหตุผลประกอบ</b><br>
+      ${[...new Set(reason)].map(x => "• " + x).join("<br>")}
+    </div>
+    <hr style="border-color:#ffffff22">
+    <b>ผลทดสอบจริง</b><br>
+    จำนวน ${total} | ถูก ${hits} | ผิด ${misses}<br>
+    อัตราถูก ${rate.toFixed(2)}%<br>
+    ผลตอบแทนจำลอง ${profit >= 0 ? "+" : ""}${profit.toFixed(2)} หน่วย<br>
+    ล่าสุด ${recent.length} รายการ: ${recent.length
+      ? recentRate.toFixed(2) + "%"
+      : "ยังไม่มีข้อมูล"}<br>
+    รูปแบบปัจจุบัน: ${currentRegime} • ${regimeData.length
+      ? regimeRate.toFixed(2) + "%"
+      : "ยังไม่มีข้อมูล"}<br>
+    <span style="color:#c5d0e8;font-size:12px">
+      สถิติย้อนหลังไม่รับประกันผลตาถัดไป • WAIT หมายถึงยังไม่มีหลักฐานเพียงพอ
+    </span>
+  `;
+}
+
+/* ===== WALK-FORWARD REPORT ===== */
+function renderWalkForward() {
+  const statsEl = document.getElementById("wfStats");
+  const regimeEl = document.getElementById("wfRegimeStats");
+  const recentEl = document.getElementById("wfRecent");
+
+  if (!statsEl || !regimeEl || !recentEl) return;
+
+  const scored = wfLog.length;
+  const hits = wfLog.filter(x => x.result === "WIN").length;
+  const misses = scored - hits;
+  const rate = scored ? (hits / scored * 100).toFixed(2) : "—";
+
+  // จำลองผลตอบแทนแบบหน่วยเดิมพัน 1 หน่วย
+  // P ชนะ = +1, B ชนะ = +0.95, แพ้ = -1
+  // ไม่รวมค่าคอมมิชชัน/กติกาพิเศษอื่น
+  const profit = wfLog.reduce((sum, x) => {
+    if (x.result === "LOSS") return sum - 1;
+    return sum + (x.pick === "B" ? 0.95 : 1);
+  }, 0);
+
+  const lineStats = wfStatsByLine.map((s, i) => {
+    const n = s.hit + s.miss;
+    return {
+      line: i + 1,
+      n,
+      rate: n ? s.hit / n * 100 : 0,
+      hit: s.hit,
+      miss: s.miss,
+      maxLose: s.maxLose,
+      currentLose: s.currentLose
+    };
+  });
+
+  const ranked = [...lineStats]
+    .filter(x => x.n > 0)
+    .sort((a, b) => b.rate - a.rate);
+
+  statsEl.innerHTML = `
+    จำนวนคำทำนายที่ตรวจผล: <b>${scored}</b><br>
+    ถูก: <span style="color:#4dffb0">${hits}</span>
+    | ผิด: <span style="color:#ff7373">${misses}</span><br>
+    อัตราถูกจริงรวม: <b>${rate}${scored ? "%" : ""}</b><br>
+    ผลตอบแทนจำลอง: <b>${profit >= 0 ? "+" : ""}${profit.toFixed(2)} หน่วย</b><br>
+    <span style="font-size:12px;color:#c5d0e8">
+      ผลนี้รวมทุกสายที่มีคำทำนาย ไม่ใช่ผลกำไรจากการแทงตามสายเดียว
+    </span>
+  `;
+
+  const regimes = ["มังกร", "ปิงปอง", "รูปแบบอื่น"];
+
+  regimeEl.innerHTML = "<b>ผลแยกตามรูปแบบเกม</b><br>" +
+    regimes.map(regime => {
+      const arr = wfLog.filter(x => x.regime === regime);
+      const win = arr.filter(x => x.result === "WIN").length;
+      const pct = arr.length
+        ? (win / arr.length * 100).toFixed(2) + "%"
+        : "ยังไม่มีข้อมูล";
+
+      return `${regime}: ${win}/${arr.length} ถูก (${pct})`;
+    }).join("<br>");
+
+  recentEl.innerHTML = `
+    <b>สถิติแยกตามสาย</b>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
+      <thead>
+        <tr>
+          <th style="padding:6px">สาย</th>
+          <th>จำนวน</th>
+          <th>ถูก%</th>
+          <th>แพ้ติดสูงสุด</th>
+          <th>แพ้ติดปัจจุบัน</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${lineStats.map(s => `
+          <tr>
+            <td style="padding:6px">สาย ${s.line}</td>
+            <td>${s.n}</td>
+            <td>${s.n ? s.rate.toFixed(1) + "%" : "—"}</td>
+            <td>${s.maxLose}</td>
+            <td>${s.currentLose}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    <div style="margin-top:10px"><b>คำทำนายล่าสุด</b></div>
+    ${wfLog.slice(-10).reverse().map(x => `
+      <div style="padding:5px 0;border-bottom:1px solid #ffffff15">
+        ตา ${x.hand} • สาย ${x.line} • ${x.pick}
+        → ${x.actual} • ${x.result} • ${x.regime}
+      </div>
+    `).join("")}
+  `;
+}
+
+function exportWalkForward() {
+  const rows = [
+    ["ตา", "สาย", "คำทำนาย", "ผลจริง", "ผลทดสอบ", "รูปแบบเกม"],
+    ...wfLog.map(x => [
+      x.hand, x.line, x.pick, x.actual, x.result, x.regime
+    ])
+  ];
+
+  const csv = "\uFEFF" + rows.map(row =>
+    row.map(value =>
+      '"' + String(value).replace(/"/g, '""') + '"'
+    ).join(",")
+  ).join("\r\n");
+
+  const blob = new Blob([csv], {
+    type: "text/csv;charset=utf-8;"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "walk-forward-results.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetWalkForward() {
+  // เริ่มทดสอบใหม่ตั้งแต่ผลถัดไป
+  // ไม่เอาผลเก่ามานับเป็นผลงานของรอบทดสอบใหม่
+  wfLog = [];
+  wfStatsByLine = Array.from({length:10}, () => ({
+    hit: 0,
+    miss: 0,
+    currentLose: 0,
+    maxLose: 0
+  }));
+
+  // ตั้งต้นคำทำนายจากข้อมูลที่มีอยู่ในปัจจุบัน
+  const picks = predict();
+  wfPending = {
+    picks: [...picks],
+    regime: wfClassify(road),
+    createdAfterHand: road.length
+  };
+
+  renderWalkForward();
+}
+
+// ===== 🔥 NEW: CURRENT LOSE =====
+function currentLoseStreak(history){
+  let cur=0;
+  for(let i=history.length-1;i>=0;i--){
+    if(history[i]==='L') cur++;
+    else break;
+  }
+  return cur;
+}
+
+function maxLoseStreak(history){
+  let max=0,cur=0;
+  history.forEach(x=>{
+    if(x==='L'){
+      cur++;
+      if(cur>max) max=cur;
+    }else{
+      cur=0;
+    }
+  });
+  return max;
+}
+
+function updateQuickView(){
+
+  updateRegimeGuard();
+
+  const quick = document.getElementById("quickContent");
+  if(!quick) return;
+
+  // โค้ดเดิมส่วนที่เหลือคงไว้ทั้งหมด
+
+  let data = lines
+    .map((l,i)=>({
+      index:i+1,
+      bet:l.bet,
+      pct:l.pct,
+      play:l.hit+l.miss
+    }))
+    .filter(x=>x.bet && x.play > 0);
+
+  if(data.length === 0){
+    quick.innerHTML = "รอข้อมูล...";
+    return;
+  }
+
+  // 🔥 เรียง % มาก → น้อย
+  data.sort((a,b)=>b.pct - a.pct);
+
+  // 🔥 เอา TOP 6
+  let top = data.slice(0,6);
+
+  quick.innerHTML = top.map(d=>{
+    let betClass = d.bet === 'P' ? 'qP' : 'qB';
+
+    return `
+      <div class="quickItem">
+        <span class="qIndex">สาย ${d.index}</span>
+        <span class="${betClass}">${d.bet}</span>
+        <span class="qPct">${d.pct}%</span>
+      </div>
+    `;
+  }).join('');
+}
+/* ==========================================
+   REGIME CHANGE GUARD PRO
+   ตรวจปิงปอง -> มังกร และคัดกรอง TOP 6
+========================================== */
+
+function updateRegimeGuard(){
+
+  const el = id => document.getElementById(id);
+
+  const statusEl = el("rgStatus");
+  const pingEl = el("rgPing");
+  const dragonEl = el("rgDragon");
+  const changeEl = el("rgChange");
+  const sampleEl = el("rgSample");
+  const topEl = el("rgTopStatus");
+  const adviceEl = el("rgAdvice");
+
+  if(!statusEl) return;
+
+  // ไม่นับ TIE ในการวิเคราะห์รูปแบบ P/B
+  const clean = road.filter(x => x === "P" || x === "B");
+
+  const last = clean.slice(-6);
+  const last4 = clean.slice(-4);
+  const previous4 = clean.slice(-8,-4);
+
+  // ตรวจปิงปองต่อเนื่อง
+  const isPingPong =
+    last.length >= 4 &&
+    last.every((x,i) => i === 0 || x !== last[i-1]);
+
+  // ตรวจมังกร: ฝั่งเดียวกันติดต่อกัน 4 ตา
+  let dragonCount = 0;
+
+  if(clean.length){
+
+    const side = clean[clean.length-1];
+
+    for(let i=clean.length-1;i>=0;i--){
+      if(clean[i] === side){
+        dragonCount++;
+      }else{
+        break;
+      }
+    }
+  }
+
+  const isDragon = dragonCount >= 4;
+
+  // ตรวจจุดเปลี่ยน:
+  // 4 ตาก่อนเป็นปิงปอง แล้ว 4 ตาล่าสุดเป็นฝั่งเดียวกัน
+  const previousWasPing =
+    previous4.length === 4 &&
+    previous4.every((x,i) => i === 0 || x !== previous4[i-1]);
+
+  const latestIsDragon =
+    last4.length === 4 &&
+    last4.every(x => x === last4[0]);
+
+  const isTransition =
+    previousWasPing && latestIsDragon;
+
+  // ตรวจผลงาน TOP 6 จากข้อมูลการทดสอบจริง
+  const candidates = lines
+    .map((l,i) => {
+
+      const play = l.hit + l.miss;
+      const recent = l.history.slice(-5);
+
+      const recentWins = recent.filter(x => x === "W").length;
+      const recentLosses = recent.filter(x => x === "L").length;
+      const recentPlay = recentWins + recentLosses;
+
+      const recentRate = recentPlay
+        ? recentWins / recentPlay * 100
+        : null;
+
+      // ลดความน่าเชื่อถือของสายที่มีตัวอย่างน้อย
+      const smoothedRate =
+        (l.hit + 2) / (play + 4) * 100;
+
+      // ให้น้ำหนักผลงานสะสม 65%
+      // และผลงานล่าสุด 35%
+      const score = recentPlay >= 3
+        ? smoothedRate * 0.65 + recentRate * 0.35
+        : smoothedRate;
+
+      return {
+        index: i + 1,
+        bet: l.bet,
+        play,
+        recentPlay,
+        recentRate,
+        score
+      };
+    })
+    .filter(x =>
+      (x.bet === "P" || x.bet === "B") &&
+      x.play >= 5
+    )
+    .sort((a,b) => b.score - a.score);
+
+  const top6 = candidates.slice(0,6);
+
+  const qualified = top6.filter(x =>
+    x.play >= 8 &&
+    x.recentPlay >= 3 &&
+    x.recentRate !== null &&
+    x.recentRate >= 60
+  );
+
+  const totalTested = lines.reduce(
+    (sum,l) => sum + l.hit + l.miss, 0
+  );
+
+  sampleEl.textContent = totalTested + " ครั้ง";
+
+  // แสดงสถานะปิงปอง
+  pingEl.textContent = isPingPong
+    ? "พบปิงปอง"
+    : "ไม่ชัดเจน";
+
+  pingEl.className = isPingPong
+    ? "rg-danger"
+    : "rg-warn";
+
+  // แสดงสถานะมังกร
+  dragonEl.textContent = dragonCount >= 2
+    ? clean[clean.length-1] + " ต่อเนื่อง " + dragonCount
+    : "ยังไม่พบ";
+
+  dragonEl.className = isDragon
+    ? "rg-good"
+    : "rg-warn";
+
+  // แสดงสถานะเปลี่ยนรูปแบบ
+  changeEl.textContent = isTransition
+    ? "พบจุดเปลี่ยน"
+    : "ยังไม่ยืนยัน";
+
+  changeEl.className = isTransition
+    ? "rg-danger"
+    : "rg-warn";
+
+  // ประเมินความพร้อมของ TOP 6
+  topEl.textContent = qualified.length
+    ? qualified.length + "/6 ผ่านเกณฑ์"
+    : "ข้อมูลยังไม่พอ";
+
+  topEl.className = qualified.length
+    ? "rg-good"
+    : "rg-warn";
+
+  // คำแนะนำตามสถานการณ์
+  if(clean.length < 8){
+
+    statusEl.innerHTML =
+      "⏳ <b>ข้อมูลยังน้อย</b><br>" +
+      "ต้องการข้อมูล P/B เพิ่มก่อนประเมินรูปแบบ";
+
+    adviceEl.textContent =
+      "อย่าใช้ผลเพียงไม่กี่ตาเป็นหลักประกันในการเลือกฝั่ง";
+
+  }else if(isTransition){
+
+    statusEl.innerHTML =
+      "🚨 <b>ตรวจพบจุดเปลี่ยน</b><br>" +
+      "ปิงปองก่อนหน้า แต่ 4 ตาล่าสุดเป็น " +
+      clean[clean.length-1] + " ทั้งหมด";
+
+    adviceEl.textContent =
+      "ระวัง TOP 6 ที่อาศัยสถิติปิงปองเดิม ชะลอการตามจนมีข้อมูลใหม่";
+
+  }else if(isDragon){
+
+    statusEl.innerHTML =
+      "🐉 <b>พบมังกร " +
+      clean[clean.length-1] +
+      "</b><br>" +
+      "ต่อเนื่อง " + dragonCount + " ตา";
+
+    adviceEl.textContent =
+      "ตรวจผลงานล่าสุดของสายตามก่อน ไม่ถือว่ามังกรจะต่อเนื่องแน่นอน";
+
+  }else if(isPingPong){
+
+    statusEl.innerHTML =
+      "🔄 <b>พบสัญญาณปิงปอง</b><br>" +
+      "ผล 6 ตาล่าสุดมีการสลับฝั่ง";
+
+    adviceEl.textContent =
+      "ตรวจว่าสายสวนหรือสายตามทำผลงานจริงได้หรือไม่ ก่อนเลือก TOP 6";
+
+  }else{
+
+    statusEl.innerHTML =
+      "🔎 <b>ยังไม่พบรูปแบบเด่นชัด</b><br>" +
+      "ไม่ควรฝืนสรุปว่าเป็นปิงปองหรือมังกร";
+
+    adviceEl.textContent =
+      "ใช้ผลย้อนหลังและผลงานล่าสุดประกอบการตัดสินใจ";
+  }
+
+  // กรณีมีสายผ่านเกณฑ์ ให้แสดงหมายเลขสายที่ดีที่สุด
+  if(qualified.length){
+
+    adviceEl.textContent +=
+      " | สายที่ผ่านเกณฑ์: " +
+      qualified.map(x =>
+        x.index + "(" + x.bet + ")"
+      ).join(", ");
+
+  }else{
+
+    adviceEl.textContent +=
+      " | ยังไม่มีสายที่ผ่านเกณฑ์ครบ";
+  }
+  // ===== เรียก AI คำตัดสินสุดท้าย =====
+  updateFinalVerdict(
+    qualified,
+    clean,
+    dragonCount,
+    isPingPong,
+    isTransition
+  );
+}
+
+function updateFinalVerdict(qualified, clean, dragonCount, isPingPong, isTransition) {
+  const box = document.getElementById("finalVerdict");
+  if (!box) return;
+
+  // ใช้เฉพาะสายที่ผ่านเกณฑ์เดิมจากการทดสอบย้อนหลัง
+  const valid = qualified.filter(x =>
+    (x.bet === "P" || x.bet === "B") &&
+    x.play >= 8 &&
+    x.recentPlay >= 3 &&
+    x.recentRate !== null
+  );
+
+  const pVotes = valid.filter(x => x.bet === "P").length;
+  const bVotes = valid.filter(x => x.bet === "B").length;
+  const total = valid.length;
+
+  let pick = "รอจังหวะ";
+  let color = "#ffd86b";
+  let reason = [];
+
+  if (clean.length < 20) {
+    reason.push("ผล P/B ยังไม่ถึง 20 ตา");
+  }
+
+  if (isTransition) {
+    reason.push("ตรวจพบสัญญาณเปลี่ยนรูปแบบ");
+  }
+
+  if (isPingPong) {
+    reason.push("ผลล่าสุดมีลักษณะสลับฝั่ง");
+  }
+
+  if (dragonCount === 3) {
+    reason.push("B/P ต่อเนื่อง 3 ตา ยังยืนยันการต่อเนื่องไม่ได้");
+  }
+
+  // ต้องมีสายผ่านเกณฑ์อย่างน้อย 4 สาย
+  // และเสียงฝั่งเดียวกันไม่น้อยกว่า 75%
+  const dominantVotes = Math.max(pVotes, bVotes);
+  const agreement = total ? dominantVotes / total : 0;
+
+  if (
+    total >= 4 &&
+    agreement >= 0.75 &&
+    !isTransition &&
+    !isPingPong &&
+    clean.length >= 20
+  ) {
+    pick = pVotes > bVotes ? "P" : "B";
+    color = pick === "P" ? "#8ec5ff" : "#ff9b9b";
+    reason.push(
+      "เสียงสายที่ผ่านเกณฑ์ " + dominantVotes + "/" + total +
+      " สายเห็นตรงกันทาง " + pick
+    );
+  } else {
+    reason.push("เสียงสายหรือรูปแบบเกมยังไม่แข็งแรงพอ");
+  }
+
+  const name = pick === "P" ? "PLAYER (P)" :
+               pick === "B" ? "BANKER (B)" : "รอจังหวะ";
+
+  box.innerHTML = `
+    <div style="font-size:16px;font-weight:900">
+      🎯 คำตัดสิน: <span style="color:${color}">${name}</span>
+    </div>
+    <div style="margin-top:8px;line-height:1.8">
+      สายเห็นตรงกัน: ${pVotes} P / ${bVotes} B<br>
+      สายผ่านเกณฑ์ที่ใช้: ${total}<br>
+      ${reason.map(x => "• " + x).join("<br>")}
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:#c5d0e8">
+      คะแนนเห็นพ้องไม่ใช่เปอร์เซ็นต์โอกาสชนะ
+      และไม่รับประกันผลตาถัดไป
+    </div>
+  `;
+}
+
+</script>
+</body>
+</html>
